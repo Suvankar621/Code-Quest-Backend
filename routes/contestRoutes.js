@@ -6,7 +6,7 @@ const router=express.Router();
 
 router.post("/create",isAuthenticated,createContest)
 router.post('/register/:id',isAuthenticated, registerContest);
-router.get('/getcontests',getAllContest);
+router.get('/getcontests',isAuthenticated,getAllContest);
 router.post('/submit/:id',isAuthenticated,submitAnswer)
 
 export default router;
