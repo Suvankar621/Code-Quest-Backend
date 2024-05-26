@@ -1,6 +1,4 @@
 import { Contest } from "../models/Contest.js";
-import jwt from 'jsonwebtoken'
-import { User } from "../models/user.js";
 
 // Create Contest
 export const createContest=async (req, res) => {
@@ -39,19 +37,7 @@ export const registerContest=async (req, res) => {
       return res.status(400).json({ message: 'User already registered for the contest' });
     }
 
-    const {token} =req.cookies;
-    if(!token){
-        return res.status(404).json({
-            success:false,
-            message:"Login First"
-        })
-    }
-
-    const decoded=await jwt.verify(token,process.env.JWT_SECRET);
-    const user=await User.findById(decoded._id);
-
-
-    contest.registeredUsers.push(user._id);
+    contest.registeredUsers.push(req.user._id);
     await contest.save();
 
     res.json({user:req.user, message: 'Successfully registered for the contest' });
