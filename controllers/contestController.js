@@ -1,4 +1,6 @@
 import { Contest } from "../models/Contest.js";
+import jwt from 'jsonwebtoken'
+import { User } from "../models/user.js";
 
 // Create Contest
 export const createContest=async (req, res) => {
@@ -36,7 +38,7 @@ export const registerContest=async (req, res) => {
     if (contest.registeredUsers.includes(req.user._id)) {
       return res.status(400).json({ message: 'User already registered for the contest' });
     }
-    
+
     const {token} =req.cookies;
     if(!token){
         return res.status(404).json({
