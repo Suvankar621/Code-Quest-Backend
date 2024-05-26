@@ -48,10 +48,10 @@ export const registerContest=async (req, res) => {
     }
 
     const decoded=await jwt.verify(token,process.env.JWT_SECRET);
-    req.user=await User.findById(decoded._id);
+    const user=await User.findById(decoded._id);
 
 
-    contest.registeredUsers.push(req.user._id);
+    contest.registeredUsers.push(user._id);
     await contest.save();
 
     res.json({user:req.user, message: 'Successfully registered for the contest' });
