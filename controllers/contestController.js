@@ -36,7 +36,7 @@ export const registerContest=async (req, res) => {
     if (contest.registeredUsers.includes(req.user._id)) {
       return res.status(400).json({ message: 'User already registered for the contest' });
     }
-
+    
     contest.registeredUsers.push(req.user._id);
     await contest.save();
 

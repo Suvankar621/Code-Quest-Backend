@@ -5,7 +5,7 @@ import { isAuthenticated } from "../middlewares/auth.js";
 const router=express.Router();
 
 router.post("/create",isAuthenticated,createContest)
-router.post('/register/:id',isAuthenticated, registerContest);
+router.get('/register/:id',isAuthenticated, registerContest);
 router.get('/getcontests',isAuthenticated,getAllContest);
 router.post('/submit/:id',isAuthenticated,submitAnswer)
 
