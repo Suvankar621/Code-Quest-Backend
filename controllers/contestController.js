@@ -45,6 +45,22 @@ export const registerContest=async (req, res) => {
     res.status(500).send(err.message);
   }
 }
+// get particular contest details
+export const contestDetails=async(req,res)=>{
+  const { id } = req.params;
+try {
+  const contest = await Contest.findById(id);
+  if (!contest) {
+    return res.status(404).json({ message: 'Contest not found' });
+  }
+  if (contest.registeredUsers.includes(req.user._id)) {
+    return res.status(400).json({contest,registeredUser:contest.registeredUsers});
+  }
+  
+} catch (err) {
+  res.status(500).send(err.message);
+}
+}
 // Submit your answer
 export const submitAnswer=async (req, res) => {
     const { id } = req.params;
