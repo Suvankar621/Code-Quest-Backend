@@ -79,7 +79,7 @@ export const submitAnswer=async (req, res) => {
         return res.status(403).json({ message: 'User not registered for the contest' });
       }
   
-      const submission = {
+      const submission = { 
         userId: req.user._id,
         answer: {answer,submissionFiles},
         submittedAt: now
