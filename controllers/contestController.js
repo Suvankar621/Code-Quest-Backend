@@ -65,7 +65,7 @@ try {
 // Submit your answer
 export const submitAnswer=async (req, res) => {
     const { id } = req.params;
-    const { answer } = req.body;
+    const { answer,submissionFiles } = req.body;
     const now = new Date();
     try {
       const contest = await Contest.findById(id);
@@ -81,7 +81,7 @@ export const submitAnswer=async (req, res) => {
   
       const submission = {
         userId: req.user._id,
-        answer: answer,
+        answer: {answer,submissionFiles},
         submittedAt: now
       };
   
