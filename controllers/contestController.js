@@ -54,8 +54,9 @@ try {
     return res.status(404).json({ message: 'Contest not found' });
   }
   if (contest.registeredUsers.includes(req.user._id)) {
-    return res.status(400).json({contest,registeredUser:contest.registeredUsers});
+    return res.status(200).json({contest,registeredUser:contest.registeredUsers});
   }
+  res.status(200).json({contest})
   
 } catch (err) {
   res.status(500).send(err.message);
