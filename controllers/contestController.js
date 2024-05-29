@@ -104,3 +104,34 @@ export const getAllContest=async(req,res)=>{
 
 
 }
+
+// Judge Submit Score
+
+
+export const scoreSubmission = async (req, res) => {
+  const { contestId, submissionId } = req.params;
+  const { score } = req.body;
+
+  if (score == null || score < 0 || score > 100) { // Example score validation
+    return res.status(400).json({ message: 'Score must be between 0 and 100.' });
+  }
+
+  try {
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ message: 'Contest not found' });
+    }
+
+    const submission = contest.submissions.id(submissionId);
+    if (!submission) {
+      return res.status(404).json({ message: 'Submission not found' });
+    }
+
+    submission.score = score;
+    await contest.save();
+
+    res.json({ message: 'Score submitted successfully', submission });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
