@@ -104,7 +104,8 @@ export const submitAnswer=async (req, res) => {
 export const getAllContest = async (req, res) => {
   try {
       // Filter contests based on createdBy field to retrieve only the contests created by the authenticated user
-      const contests = await Contest.find({ createdBy: req.user._id });
+      // const contests = await Contest.find({ createdBy: req.user._id });
+      const contests = await Contest.find();
       res.status(200).json({ contests });
   } catch (err) {
       res.status(500).send(err.message);
