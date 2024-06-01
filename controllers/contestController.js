@@ -2,9 +2,9 @@ import { Contest } from "../models/Contest.js";
 
 // Create Contest
 export const createContest=async (req, res) => {
-    const { title, startTime, endTime } = req.body;
+    const { title,question, startTime, endTime } = req.body;
     try {
-        const newContest = await new Contest({ title, startTime, endTime });
+        const newContest = await new Contest({ title,question, startTime, endTime });
         if(req.user.role==="Organizer"){
             
             await newContest.save();
