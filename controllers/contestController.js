@@ -1,20 +1,26 @@
 import { Contest } from "../models/Contest.js";
 
 // Create Contest
-export const createContest=async (req, res) => {
-    const { title,question, startTime, endTime } = req.body;
-    try {
-        const newContest = await new Contest({ title,question, startTime, endTime });
-        if(req.user.role==="Organizer"){
-            
-            await newContest.save();
-        }
-      
+export const createContest = async (req, res) => {
+  const { title, question, startTime, endTime } = req.body;
+  try {
+      const newContest = await new Contest({ 
+          title, 
+          question, 
+          startTime, 
+          endTime,
+          createdBy: req.user._id // Set createdBy to the ID of the authenticated user
+      });
+
+      if (req.user.role === "Organizer") {
+          await newContest.save();
+      }
+
       res.json(newContest);
-    } catch (err) {
+  } catch (err) {
       res.status(500).send(err.message);
-    }
   }
+};
 // Register Contest
 export const registerContest=async (req, res) => {
     const { id } = req.params;
@@ -95,15 +101,15 @@ export const submitAnswer=async (req, res) => {
     }
   }
 // get all Contest
-export const getAllContest=async(req,res)=>{
-    const contests= await Contest.find();
-
-    res.status(200).json({
-        contests
-    })
-
-
-}
+export const getAllContest = async (req, res) => {
+  try {
+      // Filter contests based on createdBy field to retrieve only the contests created by the authenticated user
+      const contests = await Contest.find({ createdBy: req.user._id });
+      res.status(200).json({ contests });
+  } catch (err) {
+      res.status(500).send(err.message);
+  }
+};
 
 // Judge Submit Score
 

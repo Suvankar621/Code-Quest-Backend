@@ -29,7 +29,12 @@ registeredUsers: [
         ref: 'User' 
     }],
 
-submissions: [SubmissionSchema]
+submissions: [SubmissionSchema],
+createdBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  required: true
+}
 });
 
 export const Contest= mongoose.model('Contest', ContestSchema);
