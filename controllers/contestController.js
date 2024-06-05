@@ -142,3 +142,20 @@ export const scoreSubmission = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+// 1 user created all contest
+export const getUserContests = async (req, res) => {
+  try {
+      const contests = await Contest.find({ createdBy: req.user._id }); // Assuming the creator field in the Contest model references the user who created the contest
+
+      if (!contests) {
+          return res.status(404).json({ message: 'No contests found' });
+      }
+
+      res.status(200).json({
+          success: true,
+          contests
+      });
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+  }
+};
