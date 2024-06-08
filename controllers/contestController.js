@@ -159,3 +159,26 @@ export const getUserContests = async (req, res) => {
       res.status(500).json({ message: 'Server error', error });
   }
 };
+// Update Contest
+export const UpdateContest =async (req, res) => {
+  const { submissionId } = req.params;
+  const { answer } = req.body;
+
+  try {
+    // Find the contest submission by ID
+    const submission = await Contest.Submission.findById(submissionId);
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    // Update the answer
+    submission.answer = answer;
+    await submission.save();
+
+    res.status(200).json({ message: "Answer updated successfully", updatedSubmission: submission });
+  } catch (error) {
+    console.error("Error updating answer:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
