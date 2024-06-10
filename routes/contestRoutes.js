@@ -11,6 +11,6 @@ router.get('/getcontest/:id',isAuthenticated,contestDetails);
 router.post('/submit/:id',isAuthenticated,submitAnswer);
 router.post('/score/:contestId/:submissionId',isAuthenticated, scoreSubmission);
 router.get('/mycontests', isAuthenticated, getUserContests);
-router.post('/update/:submissionId', isAuthenticated, UpdateContest);
+router.put('/update/:submissionId', isAuthenticated, UpdateContest);
 
 export default router;

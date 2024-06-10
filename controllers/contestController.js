@@ -160,13 +160,20 @@ export const getUserContests = async (req, res) => {
   }
 };
 // Update Contest
-export const UpdateContest =async (req, res) => {
+export const UpdateContest = async (req, res) => {
   const { submissionId } = req.params;
   const { answer } = req.body;
 
   try {
-    // Find the contest submission by ID
-    const submission = await Contest.Submission.findById(submissionId);
+    // Find the contest that contains the submission
+    const contest = await Contest.findOne({ 'submissions._id': submissionId });
+
+    if (!contest) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    // Find the specific submission within the contest's submissions array
+    const submission = contest.submissions.id(submissionId);
 
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
@@ -174,11 +181,13 @@ export const UpdateContest =async (req, res) => {
 
     // Update the answer
     submission.answer = answer;
-    await submission.save();
 
-    res.status(200).json({ message: "Answer updated successfully", updatedSubmission: submission });
+    // Save the contest (which includes the updated submission)
+    await contest.save();
+
+    res.status(200).json({ message: "Answer updated successfully", submission });
   } catch (error) {
     console.error("Error updating answer:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
