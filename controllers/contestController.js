@@ -160,39 +160,34 @@ export const getUserContests = async (req, res) => {
   }
 };
 // Update Contest
-export const updateOrSubmitAnswer = async (req, res) => {
+export const UpdateContest = async (req, res) => {
   const { submissionId } = req.params;
-  const { questionId, answer } = req.body;
+  const { answer } = req.body;
 
   try {
-    let submission;
+    // Find the contest that contains the submission
+    const contest = await Contest.findOne({ 'submissions._id': submissionId });
 
-    if (submissionId) {
-      // If submissionId is provided, try to find the submission
-      submission = await Submission.findById(submissionId);
-
-      if (!submission) {
-        return res.status(404).json({ message: "Submission not found" });
-      }
-
-      // Update the answer
-      submission.answer = answer;
-    } else {
-      // If submissionId is not provided, create a new submission
-      submission = new Submission({
-        userId: req.user._id,
-        questionId,
-        answer,
-        submittedAt: new Date()
-      });
+    if (!contest) {
+      return res.status(404).json({ message: "Submission not found" });
     }
 
-    // Save the submission (either update or create)
-    await submission.save();
+    // Find the specific submission within the contest's submissions array
+    const submission = contest.submissions.id(submissionId);
 
-    res.status(200).json({ message: "Answer saved successfully", submission });
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    // Update the answer
+    submission.answer = answer;
+
+    // Save the contest (which includes the updated submission)
+    await contest.save();
+
+    res.status(200).json({ message: "Answer updated successfully", submission });
   } catch (error) {
-    console.error("Error updating/submitting answer:", error);
+    console.error("Error updating answer:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
