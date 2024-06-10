@@ -166,7 +166,7 @@ export const UpdateContest = async (req, res) => {
 
   try {
     // Find the contest that contains the submission
-    const contest = await Contest.findOne({ 'submissions._id': submissionId });
+    const contest = await Contest.find({ 'submissions._id': submissionId });
 
     if (!contest) {
       return res.status(404).json({ message: "Submission not found" });

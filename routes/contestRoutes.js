@@ -1,5 +1,5 @@
 import express from "express";
-import { UpdateContest, contestDetails, createContest, getAllContest, getUserContests, registerContest, scoreSubmission, submitAnswer } from "../controllers/contestController.js";
+import {  contestDetails, createContest, getAllContest, getUserContests, registerContest, scoreSubmission, submitAnswer } from "../controllers/contestController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
 const router=express.Router();
@@ -11,6 +11,6 @@ router.get('/getcontest/:id',isAuthenticated,contestDetails);
 router.post('/submit/:id',isAuthenticated,submitAnswer);
 router.post('/score/:contestId/:submissionId',isAuthenticated, scoreSubmission);
 router.get('/mycontests', isAuthenticated, getUserContests);
-router.put('/update/:submissionId', isAuthenticated, UpdateContest);
+// router.put('/update/:submissionId', isAuthenticated, UpdateContest);
 
 export default router;
