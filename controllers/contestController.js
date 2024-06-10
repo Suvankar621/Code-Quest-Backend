@@ -2,23 +2,23 @@ import { Contest } from "../models/Contest.js";
 
 // Create Contest
 export const createContest = async (req, res) => {
-  const { title, question, startTime, endTime } = req.body;
+  const { title, questions, startTime, endTime } = req.body;
   try {
-      const newContest = await new Contest({ 
-          title, 
-          question, 
-          startTime, 
-          endTime,
-          createdBy: req.user._id // Set createdBy to the ID of the authenticated user
-      });
+    const newContest = new Contest({
+      title,
+      questions: questions.map(question => ({ questionText: question })),
+      startTime,
+      endTime,
+      createdBy: req.user._id
+    });
 
-      if (req.user.role === "Organizer") {
-          await newContest.save();
-      }
+    if (req.user.role === "Organizer") {
+      await newContest.save();
+    }
 
-      res.json(newContest);
+    res.json(newContest);
   } catch (err) {
-      res.status(500).send(err.message);
+    res.status(500).send(err.message);
   }
 };
 // Register Contest

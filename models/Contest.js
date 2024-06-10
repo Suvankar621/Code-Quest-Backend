@@ -1,40 +1,44 @@
 import mongoose from "mongoose";
 
-
 const SubmissionSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    answer: { type: String, required: true },
-    submittedAt: { type: Date, default: Date.now },
-    score: { type: Number, default: null }
-    
-  });
-const ContestSchema = new mongoose.Schema ({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  answer: { type: String, required: true },
+  submittedAt: { type: Date, default: Date.now },
+  score: { type: Number, default: null }
+});
+
+const ContestSchema = new mongoose.Schema({
   title: { 
     type: String, 
-    required: true },
-  question: { 
-      type: String, 
-      required: true 
-    },
+    required: true 
+  },
+  questions: [
+    {
+      questionText: { 
+        type: String, 
+        required: true 
+      }
+    }
+  ],
   startTime: { 
     type: Date, 
-    required: true },
+    required: true 
+  },
   endTime: { 
     type: Date, 
     required: true 
-},
-registeredUsers: [
+  },
+  registeredUsers: [
     { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User' 
-    }],
-
-submissions: [SubmissionSchema],
-createdBy: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'User',
- 
-}
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User' 
+    }
+  ],
+  submissions: [SubmissionSchema],
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }
 });
 
-export const Contest= mongoose.model('Contest', ContestSchema);
+export const Contest = mongoose.model('Contest', ContestSchema);
