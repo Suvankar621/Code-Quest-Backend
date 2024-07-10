@@ -11,4 +11,6 @@ router.get("/me", isAuthenticated ,getMyProfile);
 router.get("/user/:id", isAuthenticated, getUserById); 
 
 
+
+
 export default router;
