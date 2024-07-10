@@ -58,6 +58,37 @@ export const registerTeam = async (req, res) => {
   }
 };
 
+// Register Contest
+export const registerContest=async (req, res) => {
+  const { id } = req.params;
+  const now = new Date();
+  const utcTime = now.getTime();
+  // IST is UTC + 5:30 (19800 seconds)
+  const istOffset = 5.5 * 60 * 60 * 1000; // Offset in milliseconds
+  const istTime = new Date(utcTime + istOffset);
+
+try {
+  const contest = await Contest.findById(id);
+  if (!contest) {
+    return res.status(404).json({ message: 'Contest not found' });
+  }
+  if (istTime < new Date(contest.startTime) || istTime > new Date(contest.endTime)) {
+     
+    return res.status(400).json({ message: 'Registration is not open' });
+  }
+  if (contest.registeredUsers.includes(req.user._id)) {
+    return res.status(400).json({ message: 'User already registered for the contest' });
+  }
+  
+  contest.registeredUsers.push(req.user._id);
+  await contest.save();
+
+  res.json({user:req.user, message: 'Successfully registered for the contest' });
+} catch (err) {
+  res.status(500).send(err.message);
+}
+}
+
 // Get particular contest details
 export const contestDetails = async (req, res) => {
   const { id } = req.params;
