@@ -13,13 +13,14 @@ const SubmissionSchema = new mongoose.Schema({
 const TeamMemberSchema = new mongoose.Schema({
   email: { type: String, required: true },
   name: { type: String, required: true },
-  submission: SubmissionSchema
+ 
 });
 
 // Define the schema for a team
 const TeamSchema = new mongoose.Schema({
   teamName: { type: String, required: true },
-  members: [TeamMemberSchema]
+  members: [TeamMemberSchema],
+  submission: SubmissionSchema
 });
 
 // Define the schema for a contest
