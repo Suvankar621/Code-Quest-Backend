@@ -1,5 +1,8 @@
 import { Contest } from "../models/Contest.js";
-import { Team } from "../models/Team.js";
+import { Team, TeamMember } from "../models/Contest.js"; // Adjust the path if necessary
+import { User } from "../models/user.js";
+import multer from 'multer';
+import path from 'path';
 
 // Create Contest
 export const createContest = async (req, res) => {
@@ -26,7 +29,7 @@ export const createContest = async (req, res) => {
 // Register Team for Contest
 export const registerTeam = async (req, res) => {
   const { id } = req.params;
-  const { teamName, memberIds } = req.body;
+  const { teamName, members } = req.body;
   const now = new Date();
   const utcTime = now.getTime();
   const istOffset = 5.5 * 60 * 60 * 1000; // Offset in milliseconds
@@ -41,15 +44,32 @@ export const registerTeam = async (req, res) => {
       return res.status(400).json({ message: 'Registration is not open' });
     }
 
+    const teamMembers = [];
+    for (const member of members) {
+      const user = await User.findOne({ email: member.email });
+      if (!user) {
+        return res.status(400).json({ message: `User with email ${member.email} not found` });
+      }
+      if (contest.registeredTeams.some(team => team.members.some(m => m.email === member.email))) {
+        return res.status(400).json({ message: `User with email ${member.email} is already registered` });
+      }
+
+      teamMembers.push(new TeamMember({
+        email: member.email,
+        name: member.name,
+        userId: user._id,
+        submission: null // or some default submission if necessary
+      }));
+    }
+
     const team = new Team({
-      name: teamName,
-      members: memberIds,
-      contest: contest._id
+      teamName: teamName,
+      members: teamMembers
     });
 
     await team.save();
 
-    contest.teams.push(team._id);
+    contest.registeredTeams.push(team);
     await contest.save();
 
     res.json({ team, message: 'Team successfully registered for the contest' });
@@ -58,42 +78,40 @@ export const registerTeam = async (req, res) => {
   }
 };
 
-// Register Contest
-export const registerContest=async (req, res) => {
-  const { id } = req.params;
-  const now = new Date();
-  const utcTime = now.getTime();
-  // IST is UTC + 5:30 (19800 seconds)
-  const istOffset = 5.5 * 60 * 60 * 1000; // Offset in milliseconds
-  const istTime = new Date(utcTime + istOffset);
+// // Register Contest
+// export const registerContest=async (req, res) => {
+//   const { id } = req.params;
+//   const now = new Date();
+//   const utcTime = now.getTime();
+//   const istOffset = 5.5 * 60 * 60 * 1000; // Offset in milliseconds
+//   const istTime = new Date(utcTime + istOffset);
 
-try {
-  const contest = await Contest.findById(id);
-  if (!contest) {
-    return res.status(404).json({ message: 'Contest not found' });
-  }
-  if (istTime < new Date(contest.startTime) || istTime > new Date(contest.endTime)) {
-     
-    return res.status(400).json({ message: 'Registration is not open' });
-  }
-  if (contest.registeredUsers.includes(req.user._id)) {
-    return res.status(400).json({ message: 'User already registered for the contest' });
-  }
-  
-  contest.registeredUsers.push(req.user._id);
-  await contest.save();
+//   try {
+//     const contest = await Contest.findById(id);
+//     if (!contest) {
+//       return res.status(404).json({ message: 'Contest not found' });
+//     }
+//     if (istTime < new Date(contest.startTime) || istTime > new Date(contest.endTime)) {
+//       return res.status(400).json({ message: 'Registration is not open' });
+//     }
+//     if (contest.registeredUsers.includes(req.user._id)) {
+//       return res.status(400).json({ message: 'User already registered for the contest' });
+//     }
 
-  res.json({user:req.user, message: 'Successfully registered for the contest' });
-} catch (err) {
-  res.status(500).send(err.message);
-}
-}
+//     contest.registeredUsers.push(req.user._id);
+//     await contest.save();
+
+//     res.json({user:req.user, message: 'Successfully registered for the contest' });
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// }
 
 // Get particular contest details
 export const contestDetails = async (req, res) => {
   const { id } = req.params;
   try {
-    const contest = await Contest.findById(id).populate('teams').populate('registeredUsers');
+    const contest = await Contest.findById(id).populate('registeredTeams').populate('registeredUsers');
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
@@ -104,36 +122,64 @@ export const contestDetails = async (req, res) => {
 };
 
 // Submit your answer
-export const submitAnswer = async (req, res) => {
-  const { id } = req.params;
-  const { answer } = req.body;
-  const now = new Date();
-  try {
-    const contest = await Contest.findById(id);
-    if (!contest) {
-      return res.status(404).json({ message: 'Contest not found' });
-    }
-    if (now < new Date(contest.startTime) || now > new Date(contest.endTime)) {
-      return res.status(400).json({ message: 'Contest is not active' });
-    }
-    if (!contest.registeredUsers.includes(req.user._id)) {
-      return res.status(403).json({ message: 'User not registered for the contest' });
-    }
-
-    const submission = { 
-      userId: req.user._id,
-      answer: answer,
-      submittedAt: now
-    };
-
-    contest.submissions.push(submission);
-    await contest.save();
-
-    res.json({ message: 'Answer submitted successfully' });
-  } catch (err) {
-    res.status(500).send(err.message);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
   }
-};
+});
+
+const upload = multer({ storage: storage });
+
+export const submitAnswer = [
+  upload.single('file'), // middleware to handle file upload
+  async (req, res) => {
+    const { id } = req.params;
+    const now = new Date();
+    const file = req.file;
+
+    try {
+      const contest = await Contest.findById(id);
+      if (!contest) {
+        return res.status(404).json({ message: 'Contest not found' });
+      }
+      if (now < new Date(contest.startTime) || now > new Date(contest.endTime)) {
+        return res.status(400).json({ message: 'Contest is not active' });
+      }
+
+      // Check if the user is part of a registered team
+      const team = contest.registeredTeams.find(team => team.members.some(member => member.email === req.user.email));
+      if (!team) {
+        return res.status(403).json({ message: 'User not registered in any team for the contest' });
+      }
+
+      if (!file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const submission = {
+        userId: req.user._id,
+        submittedAt: now,
+        file: file.path // Save file path
+      };
+
+      team.members = team.members.map(member => {
+        if (member.email === req.user.email) {
+          member.submission = submission;
+        }
+        return member;
+      });
+
+      await contest.save();
+
+      res.json({ message: 'File submitted successfully', submission });
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+  }
+];
 
 // Get all contests
 export const getAllContest = async (req, res) => {
@@ -193,7 +239,7 @@ export const UpdateContest = async (req, res) => {
   const { answer } = req.body;
 
   try {
-    const contest = await Contest.find({ 'submissions._id': submissionId });
+    const contest = await Contest.findOne({ 'submissions._id': submissionId });
 
     if (!contest) {
       return res.status(404).json({ message: "Submission not found" });
