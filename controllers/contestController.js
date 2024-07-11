@@ -111,13 +111,24 @@ export const registerTeam = async (req, res) => {
 export const contestDetails = async (req, res) => {
   const { id } = req.params;
   try {
-    const contest = await Contest.findById(id).populate('registeredTeams').populate('registeredUsers');
+    const contest = await Contest.findById(id)
+      .populate({
+        path: 'registeredTeams',
+        populate: {
+          path: 'members.userId',
+          model: 'User'
+        }
+      })
+      .populate('createdBy'); // Populate the createdBy field with User details if needed
+      
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
+
     res.status(200).json({ contest });
   } catch (err) {
-    res.status(500).send(err.message);
+    console.error('Error fetching contest details:', err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
