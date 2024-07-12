@@ -115,11 +115,11 @@ export const submitAnswer = async (req, res) => {
       return res.status(400).json({ message: 'Contest is not active' });
     }
 
-    // Check if the user is part of a registered team
-    const team = contest.registeredTeams.find(team => team.members.some(member => member.email === req.user.email));
-    if (!team) {
-      return res.status(403).json({ message: 'User not registered in any team for the contest' });
-    }
+    // // Check if the user is part of a registered team
+    // const team = contest.registeredTeams.find(team => team.members.some(member => member.email === req.user.email));
+    // if (!team) {
+    //   return res.status(403).json({ message: 'User not registered in any team for the contest' });
+    // }
 
     if (!file) {
       return res.status(400).json({ message: 'No file uploaded' });
