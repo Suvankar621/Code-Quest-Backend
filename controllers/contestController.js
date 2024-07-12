@@ -101,58 +101,49 @@ export const contestDetails = async (req, res) => {
 };
 
 // Submit your answer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-  }
-});
+export const submitAnswer = async (req, res) => {
+  const { id } = req.params;
+  const now = new Date();
+  const file = req.file;
 
-const upload = multer({ storage: storage });
-
-export const submitAnswer = [
-  upload.single('file'), // middleware to handle file upload
-  async (req, res) => {
-    const { id } = req.params;
-    const now = new Date();
-    const file = req.file;
-
-    try {
-      const contest = await Contest.findById(id);
-      if (!contest) {
-        return res.status(404).json({ message: 'Contest not found' });
-      }
-      if (now < new Date(contest.startTime) || now > new Date(contest.endTime)) {
-        return res.status(400).json({ message: 'Contest is not active' });
-      }
-
-      // Check if the user is part of a registered team
-      const team = contest.registeredTeams.find(team => team.members.some(member => member.email === req.user.email));
-      if (!team) {
-        return res.status(403).json({ message: 'User not registered in any team for the contest' });
-      }
-
-      if (!file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-      }
-
-      const submission = new Submission({
-        userId: req.user._id,
-        submittedAt: now,
-        file: file.path // Save file path
-      });
-
-      team.submission = submission;
-      await contest.save();
-
-      res.json({ message: 'File submitted successfully', submission });
-    } catch (err) {
-      res.status(500).send(err.message);
+  try {
+    const contest = await Contest.findById(id);
+    if (!contest) {
+      return res.status(404).json({ message: 'Contest not found' });
     }
+    if (now < new Date(contest.startTime) || now > new Date(contest.endTime)) {
+      return res.status(400).json({ message: 'Contest is not active' });
+    }
+
+    // Check if the user is part of a registered team
+    const team = contest.registeredTeams.find(team => team.members.some(member => member.email === req.user.email));
+    if (!team) {
+      return res.status(403).json({ message: 'User not registered in any team for the contest' });
+    }
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Create a new submission document
+    const submission = new Submission({
+      userId: req.user._id,
+      submittedAt: now,
+      file: {
+        data: file.buffer,  // Store file data as Buffer
+        contentType: file.mimetype  // Store content type
+      }
+    });
+
+    // Save submission to database
+    team.submission = submission;
+    await contest.save();
+
+    res.json({ message: 'File submitted successfully', submission });
+  } catch (err) {
+    res.status(500).send(err.message);
   }
-];
+};
 
 // Get all contests
 export const getAllContest = async (req, res) => {

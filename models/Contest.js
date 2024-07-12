@@ -8,10 +8,12 @@ const ScoreSchema = new mongoose.Schema({
 // Define the schema for a submission
 const SubmissionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  // answer: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now },
   scores: [ScoreSchema],
-  file: { type: String } 
+  file: {
+    data: Buffer,  // Store file data directly in database as Buffer
+    contentType: String  // Optional: Store content type for reference
+  }
 });
 
 // Define the schema for a team member
