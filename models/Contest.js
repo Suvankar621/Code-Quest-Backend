@@ -1,24 +1,29 @@
 import mongoose from "mongoose";
 
+const ScoreSchema = new mongoose.Schema({
+  questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  score: { type: Number, default: null }
+});
+
 // Define the schema for a submission
 const SubmissionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   // answer: { type: String, required: true },
   submittedAt: { type: Date, default: Date.now },
-  score: { type: Number, default: null },
+  scores: [ScoreSchema],
   file: { type: String } 
 });
 
 // Define the schema for a team member
 const TeamMemberSchema = new mongoose.Schema({
   email: { type: String, required: true },
-  name: { type: String, required: true },
- 
+
 });
 
 // Define the schema for a team
 const TeamSchema = new mongoose.Schema({
   teamName: { type: String, required: true },
+  teamLeader: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   members: [TeamMemberSchema],
   submission: SubmissionSchema
 });
