@@ -99,8 +99,7 @@ export const contestDetails = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-// Submit your answer
+// Submit
 export const submitAnswer = async (req, res) => {
   const { id } = req.params;
   const now = new Date();
@@ -115,11 +114,11 @@ export const submitAnswer = async (req, res) => {
       return res.status(400).json({ message: 'Contest is not active' });
     }
 
-    // // Check if the user is part of a registered team
-    // const team = contest.registeredTeams.find(team => team.members.some(member => member.email === req.user.email));
-    // if (!team) {
-    //   return res.status(403).json({ message: 'User not registered in any team for the contest' });
-    // }
+    // Find the team to associate the submission with
+    const team = contest.registeredTeams.find(team => team.teamLeader.equals(req.user._id) || team.members.some(member => member.equals(req.user._id)));
+    if (!team) {
+      return res.status(403).json({ message: 'User not registered in any team for the contest' });
+    }
 
     if (!file) {
       return res.status(400).json({ message: 'No file uploaded' });
