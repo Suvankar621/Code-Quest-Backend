@@ -165,12 +165,16 @@ export const getAllContest = async (req, res) => {
 };
 
 // Judge Submit Score
+// Judge Submit Score
 export const scoreSubmission = async (req, res) => {
   const { contestId, questionId, submissionId } = req.params;
-  const { score } = req.body;
+  const { score1, score2, score3, score4 } = req.body; // Assuming score fields are sent from frontend
 
-  if (score == null || score < 0 || score > 100) { // Example score validation
-    return res.status(400).json({ message: 'Score must be between 0 and 100.' });
+  // Validate score values
+  if (score1 == null || score2 == null || score3 == null || score4 == null ||
+      score1 < 0 || score1 > 100 || score2 < 0 || score2 > 100 ||
+      score3 < 0 || score3 > 100 || score4 < 0 || score4 > 100) {
+    return res.status(400).json({ message: 'Scores must be between 0 and 100.' });
   }
 
   try {
@@ -189,14 +193,23 @@ export const scoreSubmission = async (req, res) => {
       return res.status(404).json({ message: 'Submission not found' });
     }
 
-    submission.score = score;
+    // Update scores in the submission
+    submission.scores = {
+      score1,
+      score2,
+      score3,
+      score4
+    };
+
     await contest.save();
 
     res.json({ message: 'Score submitted successfully', submission });
   } catch (err) {
+    console.error('Score Submission Error:', err);
     res.status(500).send(err.message);
   }
 };
+
 
 // Get contests created by a user
 export const getUserContests = async (req, res) => {

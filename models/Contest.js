@@ -1,21 +1,22 @@
 import mongoose from "mongoose";
 
+// Define the schema for scores within a submission
 const ScoreSchema = new mongoose.Schema({
-  questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  score: { type: Number, default: null }
+  score1: { type: Number, default: null },
+  score2: { type: Number, default: null },
+  score3: { type: Number, default: null },
+  score4: { type: Number, default: null }
 });
 
 // Define the schema for a submission
 const SubmissionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   submittedAt: { type: Date, default: Date.now },
-  scores: [ScoreSchema],
+  scores: ScoreSchema,  // Use the ScoreSchema directly for scores
   file: {
     url: { type: String, required: true }, // Store file URL
-
   }
 });
-
 
 // Define the schema for a team member
 const TeamMemberSchema = new mongoose.Schema({
@@ -27,7 +28,6 @@ const TeamSchema = new mongoose.Schema({
   teamName: { type: String, required: true },
   teamLeader: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   members: [TeamMemberSchema],
-
 });
 
 // Define the schema for a question
