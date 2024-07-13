@@ -117,7 +117,7 @@ export const submitAnswer = async (req, res) => {
     // Find the team to associate the submission with
     let team = null;
     for (const regTeam of contest.registeredTeams) {
-      if (regTeam.teamLeader.equals(req.user._id) || regTeam.members.some(member => member.userId.equals(req.user._id))) {
+      if (regTeam.teamLeader.equals(req.user._id)) {
         team = regTeam;
         break;
       }
