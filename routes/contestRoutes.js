@@ -4,7 +4,6 @@ import {
   createContest, 
   getAllContest, 
   getUserContests, 
-  // registerContest, 
   registerTeam, // Import the new controller function for team registration
   scoreSubmission, 
   submitAnswer 
@@ -14,12 +13,11 @@ import { isAuthenticated } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.post("/create", isAuthenticated, createContest);
-// router.post('/register/:id', isAuthenticated, registerContest); // Changed to POST for consistency
 router.post('/register/team/:id', isAuthenticated, registerTeam); // New route for team registration
 router.get('/getcontests', isAuthenticated, getAllContest);
 router.get('/getcontest/:id', isAuthenticated, contestDetails);
-router.post('/submit/:id', isAuthenticated, submitAnswer);
-router.post('/score/:contestId/:submissionId', isAuthenticated, scoreSubmission);
+router.post('/submit/:id/:questionId', isAuthenticated, submitAnswer); // Updated route to include questionId
+router.post('/score/:contestId/:questionId/:submissionId', isAuthenticated, scoreSubmission); // Updated route to include questionId
 router.get('/mycontests', isAuthenticated, getUserContests);
 
 export default router;

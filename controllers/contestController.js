@@ -55,7 +55,6 @@ export const registerTeam = async (req, res) => {
 
       teamMembers.push(new TeamMember({
         email: member.email,
-        name: member.name,
       }));
     }
 
@@ -74,7 +73,6 @@ export const registerTeam = async (req, res) => {
   }
 };
 
-// Get particular contest details
 // Get particular contest details
 export const contestDetails = async (req, res) => {
   const { id } = req.params;
@@ -99,13 +97,15 @@ export const contestDetails = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-// Submit
+
+// Submit Answer
 export const submitAnswer = async (req, res) => {
-  const { id } = req.params;
+  const { id, questionId } = req.params;
   const now = new Date();
-  const file = req.file;
+  const { fileUrl } = req.body; // Assuming fileUrl is sent from frontend containing Cloudinary URL
 
   try {
+    // Check if contest exists and is active
     const contest = await Contest.findById(id);
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
@@ -115,34 +115,44 @@ export const submitAnswer = async (req, res) => {
     }
 
     // Find the team to associate the submission with
-    const team = contest.registeredTeams.find(team => team.teamLeader.equals(req.user._id) || team.members.some(member => member.equals(req.user._id)));
+    let team = null;
+    for (const regTeam of contest.registeredTeams) {
+      if (regTeam.teamLeader.equals(req.user._id) || regTeam.members.some(member => member.userId.equals(req.user._id))) {
+        team = regTeam;
+        break;
+      }
+    }
     if (!team) {
       return res.status(403).json({ message: 'User not registered in any team for the contest' });
     }
 
-    if (!file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+    // Find the question to associate the submission with
+    const question = contest.questions.id(questionId);
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
     }
 
     // Create a new submission document
-    const submission = new Submission({
+    const submission = {
       userId: req.user._id,
       submittedAt: now,
       file: {
-        data: file.buffer,  // Store file data as Buffer
-        contentType: file.mimetype  // Store content type
+        url: fileUrl, // Store file URL from Cloudinary
+       
       }
-    });
+    };
 
-    // Save submission to database
-    team.submission = submission;
+    // Save submission to database and update question
+    question.submissions.push(submission);
     await contest.save();
 
     res.json({ message: 'File submitted successfully', submission });
   } catch (err) {
+    console.error('Submission Error:', err);
     res.status(500).send(err.message);
   }
 };
+
 
 // Get all contests
 export const getAllContest = async (req, res) => {
@@ -156,7 +166,7 @@ export const getAllContest = async (req, res) => {
 
 // Judge Submit Score
 export const scoreSubmission = async (req, res) => {
-  const { contestId, submissionId } = req.params;
+  const { contestId, questionId, submissionId } = req.params;
   const { score } = req.body;
 
   if (score == null || score < 0 || score > 100) { // Example score validation
@@ -169,15 +179,20 @@ export const scoreSubmission = async (req, res) => {
       return res.status(404).json({ message: 'Contest not found' });
     }
 
-    const team = contest.registeredTeams.find(team => team.submission && team.submission._id.toString() === submissionId);
-    if (!team) {
+    const question = contest.questions.id(questionId);
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    const submission = question.submissions.id(submissionId);
+    if (!submission) {
       return res.status(404).json({ message: 'Submission not found' });
     }
 
-    team.submission.score = score;
+    submission.score = score;
     await contest.save();
 
-    res.json({ message: 'Score submitted successfully', submission: team.submission });
+    res.json({ message: 'Score submitted successfully', submission });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -202,22 +217,27 @@ export const UpdateContest = async (req, res) => {
   const { answer } = req.body;
 
   try {
-    const contest = await Contest.findOne({ 'registeredTeams.submission._id': submissionId });
+    const contest = await Contest.findOne({ 'questions.submissions._id': submissionId });
 
     if (!contest) {
       return res.status(404).json({ message: "Submission not found" });
     }
 
-    const team = contest.registeredTeams.find(team => team.submission && team.submission._id.toString() === submissionId);
+    const question = contest.questions.find(question => question.submissions.id(submissionId));
 
-    if (!team) {
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    const submission = question.submissions.id(submissionId);
+    if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
 
-    team.submission.answer = answer; // Assuming the submission schema includes an answer field
+    submission.answer = answer; // Assuming the submission schema includes an answer field
     await contest.save();
 
-    res.status(200).json({ message: "Answer updated successfully", submission: team.submission });
+    res.status(200).json({ message: "Answer updated successfully", submission });
   } catch (error) {
     console.error("Error updating answer:", error);
     res.status(500).json({ message: "Internal server error" });
