@@ -106,3 +106,45 @@ export const getUserById = async (req, res) => {
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
+export const getAllJury=async(req,res)=>{
+    try {
+        const user = await User.find();
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+}
+export const deleteJury = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Check if the provided ID is valid
+        if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+
+        const user = await User.findByIdAndDelete(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Jury Deleted Successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
