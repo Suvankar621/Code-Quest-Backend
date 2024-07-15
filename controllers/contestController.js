@@ -167,43 +167,59 @@ export const getAllContest = async (req, res) => {
 // Judge Submit Score
 // Judge Submit Score
 export const scoreSubmission = async (req, res) => {
-  const { contestId, questionId, submissionId } = req.params;
+  const { contestId, questionId, teamId } = req.params;
   const { score1, score2, score3, score4 } = req.body; // Assuming score fields are sent from frontend
 
   // Validate score values
-  if (score1 == null || score2 == null || score3 == null || score4 == null ||
-      score1 < 0 || score1 > 100 || score2 < 0 || score2 > 100 ||
-      score3 < 0 || score3 > 100 || score4 < 0 || score4 > 100) {
+  if (
+    score1 == null ||
+    score2 == null ||
+    score3 == null ||
+    score4 == null ||
+    score1 < 0 ||
+    score1 > 100 ||
+    score2 < 0 ||
+    score2 > 100 ||
+    score3 < 0 ||
+    score3 > 100 ||
+    score4 < 0 ||
+    score4 > 100
+  ) {
     return res.status(400).json({ message: 'Scores must be between 0 and 100.' });
   }
 
   try {
     const contest = await Contest.findById(contestId);
+
     if (!contest) {
       return res.status(404).json({ message: 'Contest not found' });
     }
 
     const question = contest.questions.id(questionId);
+
     if (!question) {
       return res.status(404).json({ message: 'Question not found' });
     }
+console.log(question)
+console.log(teamId)
+    // Find the submission by teamId and update its scores
+    const submission = question.submissions.find(sub => sub.userId.toString() === teamId);
 
-    const submission = question.submissions.id(submissionId);
     if (!submission) {
-      return res.status(404).json({ message: 'Submission not found' });
+      return res.status(404).json({ message: 'Team submission not found for this question' });
     }
 
-    // Update scores in the submission
+    // Update scores for the found submission
     submission.scores = {
-      score1,
-      score2,
-      score3,
-      score4
+      score1: score1 || null,
+      score2: score2 || null,
+      score3: score3 || null,
+      score4: score4 || null
     };
 
     await contest.save();
 
-    res.json({ message: 'Score submitted successfully', submission });
+    res.json({ message: 'Scores submitted successfully', submission });
   } catch (err) {
     console.error('Score Submission Error:', err);
     res.status(500).send(err.message);
