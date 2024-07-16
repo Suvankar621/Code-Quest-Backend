@@ -1,7 +1,7 @@
 
 import { User } from "../models/user.js";
 import bcrypt from 'bcrypt'
-import { sendCookie } from "../utils/features.js";
+import { sendCookie, sendMail } from "../utils/features.js";
 
 // Register
 export const register=async(req,res)=>{
@@ -21,6 +21,7 @@ export const register=async(req,res)=>{
         user=await User.create({name,email,password:hashedPassword,role});
      
         sendCookie(user,res,"Registered Successfully",201);
+        sendMail(user,res,200);
         
     } catch (error) {
         console.error("Error during user registration:", error); // Add logging for debugging

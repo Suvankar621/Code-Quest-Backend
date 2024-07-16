@@ -2,6 +2,7 @@ import { Contest, Team, TeamMember, Submission } from "../models/Contest.js"; //
 import { User } from "../models/user.js";
 import multer from 'multer';
 import path from 'path';
+import { sendMailContets } from "../utils/features.js";
 
 // Create Contest
 export const createContest = async (req, res) => {
@@ -66,6 +67,7 @@ export const registerTeam = async (req, res) => {
 
     contest.registeredTeams.push(team);
     await contest.save();
+    sendMailContets(req.user)
 
     res.json({ team, message: 'Team successfully registered for the contest' });
   } catch (err) {
