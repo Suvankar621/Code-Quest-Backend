@@ -25,8 +25,8 @@ export const sendMail = (user, res, statusCode = 200) => {
     port: 587,
     secure: false, // Use `true` for port 465, `false` for all other ports
     auth: {
-      user: "suvankarmahato621@gmail.com",
-      pass: "qpak ytel xcqt egrb", // make sure to use a valid app password
+      user: process.env.EMAIL,
+      pass: process.env.APP_PASS, // make sure to use a valid app password
     },
   });
   let mailOptions = {};
