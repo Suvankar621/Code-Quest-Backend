@@ -5,12 +5,36 @@ import path from 'path';
 import { sendMailContets } from "../utils/features.js";
 
 // Create Contest
+// export const createContest = async (req, res) => {
+//   const { title, questions, startTime, endTime } = req.body;
+//   try {
+//     const newContest = new Contest({
+//       title,
+//       questions: questions.map(question => ({ questionText: question })),
+//       startTime,
+//       endTime,
+//       createdBy: req.user._id
+//     });
+
+//     if (req.user.role === "Organizer") {
+//       await newContest.save();
+//     }
+
+//     res.json(newContest);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// };
+
 export const createContest = async (req, res) => {
   const { title, questions, startTime, endTime } = req.body;
   try {
     const newContest = new Contest({
       title,
-      questions: questions.map(question => ({ questionText: question })),
+      questions: questions.map(question => ({
+        questionText: question.questionText,
+        judges: question.judges.map(judge => ({ email: judge.email })),
+      })),
       startTime,
       endTime,
       createdBy: req.user._id

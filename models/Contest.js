@@ -36,6 +36,14 @@ const QuestionSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  judges:[
+    {
+      email:{
+        type:String,
+        // required:true
+      }
+    }
+  ],
   submissions: [SubmissionSchema]  // Submissions for each question
 });
 
