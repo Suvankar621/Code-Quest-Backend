@@ -2,7 +2,7 @@ import { Contest, Team, TeamMember, Submission } from "../models/Contest.js"; //
 import { User } from "../models/user.js";
 import multer from 'multer';
 import path from 'path';
-import { sendMailContets } from "../utils/features.js";
+import { sendMail, sendMailContets } from "../utils/features.js";
 
 // Create Contest
 // export const createContest = async (req, res) => {
@@ -88,10 +88,15 @@ export const registerTeam = async (req, res) => {
       teamLeader: req.user._id,
       members: teamMembers,
     });
-
+    const users=[];
+    users.push(req.user.email)
+    teamMembers.forEach(element => {
+      users.push(element.email)
+      
+    });
     contest.registeredTeams.push(team);
     await contest.save();
-    sendMailContets(req.user)
+    sendMailContets(users,teamName)
 
     res.json({ team, message: 'Team successfully registered for the contest' });
   } catch (err) {
@@ -226,8 +231,8 @@ export const scoreSubmission = async (req, res) => {
     if (!question) {
       return res.status(404).json({ message: 'Question not found' });
     }
-console.log(question)
-console.log(teamId)
+// console.log(question)
+// console.log(teamId)
     // Find the submission by teamId and update its scores
     const submission = question.submissions.find(sub => sub.userId.toString() === teamId);
 

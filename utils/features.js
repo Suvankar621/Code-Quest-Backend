@@ -65,17 +65,16 @@ export const sendMail = (user, res, statusCode = 200) => {
 
   sendMail(transporter, mailOptions);
 };
-
-export const sendMailContets = (user, res, statusCode = 200) => {
-  console.log(user.role);
+// For Contest
+export const sendMailContets = (users, teamName, res, statusCode = 200) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",
     port: 587,
-    secure: false, // Use `true` for port 465, `false` for all other ports
+    secure: false, // Use `true` for port 465, `false` for other ports
     auth: {
-      user: "suvankarmahato621@gmail.com",
-      pass: "qpak ytel xcqt egrb", // make sure to use a valid app password
+      user: process.env.EMAIL,
+      pass: process.env.APP_PASS // ensure you have a valid app password
     },
   });
 
@@ -84,7 +83,7 @@ export const sendMailContets = (user, res, statusCode = 200) => {
       name: "CodeQuest",
       address: "suvankarmahato621@gmail.com",
     },
-    to: [user.email], // list of receivers
+    to: users, // Ensure this is the correct email address
     subject: "Team Registration Successful",
     text: `Dear Participant,\n\nYour team "${teamName}" has been successfully registered for the contest. We look forward to your participation.\n\nBest Regards,\nCodeQuest Team`,
     html: `<p>Dear Participant,</p><p>Your team <b>"${teamName}"</b> has been successfully registered for the contest. We look forward to your participation.</p><p>Best Regards,<br>CodeQuest Team</p>`,
@@ -95,9 +94,11 @@ export const sendMailContets = (user, res, statusCode = 200) => {
       await transporter.sendMail(mailOptions);
       console.log("Mail sent");
     } catch (error) {
-      console.log(error);
+      console.error("Error sending email:", error);
+      throw new Error("Failed to send email");
     }
   };
 
-  sendMail(transporter, mailOptions);
+  sendMail(transporter, mailOptions)
+
 };
